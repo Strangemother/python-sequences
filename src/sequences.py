@@ -1,233 +1,30 @@
 from collections import defaultdict
-import sys
-
-import sys
-
-from pprint import pprint as pp
 
 
-# mapped = {}
-
-# g = defaultdict(set)
-# hots = defaultdict(set)
-# table = {}
 UNUSED = -1
-
-
-WORDS = ('apples',
-    'window',
-    'ape',
-    'apex',
-    'extra',
-    'tracks',
-    'stack',
-    'yes',
-    'cape',
-    'cake',
-    'echo',
-    'win',
-    # 'horse',
-    # 'house',
-    'wind',
-    'windy',
-    'w',
-    'ww',
-    'd' * 5,)
-
-
-def main():
-    run_test()
-    # sq = Sequences(WORDS)
-    # ask_loop(sq)
-    # return sq
-
-
-def hash_val(text:str):
-    res = 0
-    for ch in text:
-        res = ( res*281  ^ ord(ch)*997) & 0xFFFFFFFF
-    return res
-
-import unittest
-
-
-def run_test():
-    test_hit_all()
-    test_window()
-    test_clone()
-
-def test_clone():
-    s = Sequences(WORDS, id_func=hash_val)
-    c = s.clone()
-
-    assert s.id_func == c.id_func
-
-def test_hit_all():
-    v = 'apextrackstackcapechoappleswwindowwindyyescakedddddf'
-    s = Sequences(WORDS)#, id_func=hash_val)
-    r = mass_frame(s, v)
-    e = (('ddddd', 'ww', 'yes', 'stack', 'cake', 'wind', 'w', 'windy', 'win',
-        'window', 'ape', 'apex', 'extra', 'tracks', 'apples', 'cape', 'echo'),
-         ('cake', 'wind', 'ddddd', 'yes', 'w', 'windy', 'win', 'window',
-            'ape', 'apex', 'extra', 'tracks', 'apples', 'ww', 'stack',
-            'cape', 'echo'),
-         ('tracks', 'yes', 'ww', 'stack', 'cake', 'wind', 'w', 'windy',
-            'win', 'window', 'ape', 'apex', 'extra', 'ddddd', 'apples',
-            'cape', 'echo'))
-    assertTupleTupleEqual(r, e)
-
-def test_window():
-    v = 'window'
-    e = (('ww', 'ddddd', 'w', 'win', 'wind', 'windy', 'window'),
-         ('w', 'window', 'win', 'wind'),
-         ('ww', 'ddddd', 'w', 'windy', 'win', 'wind'))
-    se = (('ww', 'w', 'wind', 'windy', 'win'), ('w', 'window'), ())
-
-    s = Sequences(WORDS)#, id_func=hash_val)
-    r = mass_frame(s, v)
-    sr = single_frames(s, v)
-
-    assertTupleTupleEqual(r, e)
-    assertTupleTupleEqual(sr, se)
-    return r
-
-
-def assertTupleTupleEqual(tta, ttb):
-    for x,y in zip(tta,ttb):
-        unittest.TestCase().assertTupleEqual(tuple(sorted(x)),tuple(sorted(y)))
-
-def ask_loop(sequences):
-    while 1:
-        try:
-            ask_inject(sequences)
-        except (EOFError, KeyboardInterrupt) as e:
-            print('Close ask-loop')
-            return
-
-    return sequences
-
-
-def ask_inject(sequences):
-    v = input('?: ')
-    r = single_frames(sequences, v)
-    # r = mass_frame(sequences, v)
-    print(r)
-
-
-def single_frames(sequences, iterable):
-    """ Push many chars into the sequence and render many single frames,
-    returning the last (current) result from the iteration
-
-    Functionally, this affects the sequence table in the same manner as "mass_frame"
-    but yields _the last_ result:
-
-        ?: window
-        # ... 5 more frames.
-
-        WORD    POS  | NEXT | STRT | OPEN | HIT  | DROP
-        apples       |      |      |      |      |
-        window   1   |  i   |      |  #   |  #   |
-        ape          |      |      |      |      |
-        apex         |      |      |      |      |
-        extra        |      |      |      |      |
-        tracks       |      |      |      |      |
-        stack        |      |      |      |      |
-        yes          |      |      |      |      |
-        cape         |      |      |      |      |
-        cake         |      |      |      |      |
-        echo         |      |      |      |      |
-        win      1   |  i   |  #   |  #   |      |
-        wind     1   |  i   |  #   |  #   |      |
-        windy    1   |  i   |  #   |  #   |      |
-        w        1   |      |  #   |  #   |  #   |
-        ww       1   |  w   |  #   |  #   |      |
-        ddddd        |      |      |      |      |
-
-          (
-            ('win', 'ww', 'wind', 'w', 'windy'),
-            ('window', 'w'),
-            ()
-          )
-    """
-    return sequences.table_insert_keys(iterable)
-
-
-def mass_frame(sequences, iterable):
-    """
-    Push many chars into the sequence and return a concat of all starts, hits,
-    and drops for the iterable.
-
-        ?: window
-
-        WORD    POS  | NEXT | STRT | OPEN | HIT  | DROP
-        apples       |      |      |      |      |
-        window   1   |  i   |  #   |  #   |  #   |
-        ape          |      |      |      |      |
-        apex         |      |      |      |      |
-        extra        |      |      |      |      |
-        tracks       |      |      |      |      |
-        stack        |      |      |      |      |
-        yes          |      |      |      |      |
-        cape         |      |      |      |      |
-        cake         |      |      |      |      |
-        echo         |      |      |      |      |
-        win      1   |  i   |  #   |  #   |  #   |  #
-        wind     1   |  i   |  #   |  #   |  #   |  #
-        windy    1   |  i   |  #   |  #   |      |  #
-        w        1   |      |  #   |  #   |  #   |  #
-        ww       1   |  w   |  #   |  #   |      |  #
-        ddddd        |      |  #   |      |      |  #
-
-        ( ('ww', 'windy', 'win', 'wind', 'w', 'window', 'ddddd', 'ww', 'windy',
-            'win', 'wind', 'w'),
-          ('w', 'win', 'wind', 'window', 'w'),
-          ('w', 'ww', 'win', 'wind', 'windy', 'ddddd')
-        )
-
-    This is useful for mass framing:
-
-        V:apextrackstackcapechoappleswwindowwindyyescakedddddf
-        IndexError for 1 on w
-        IndexError for 1 on w
-
-          WORD    POS  | NEXT | STRT | OPEN | HIT  | DROP
-          apples       |      |  #   |      |  #   |  #
-          window       |      |  #   |      |  #   |  #
-          ape          |      |  #   |      |  #   |  #
-          apex         |      |  #   |      |  #   |  #
-          extra        |      |  #   |      |  #   |  #
-          tracks       |      |  #   |      |  #   |  #
-          stack        |      |  #   |      |  #   |  #
-          yes          |      |  #   |      |  #   |  #
-          cape         |      |  #   |      |  #   |  #
-          cake         |      |  #   |      |  #   |  #
-          echo         |      |  #   |      |  #   |  #
-          win          |      |  #   |      |  #   |  #
-          wind         |      |  #   |      |  #   |  #
-          windy        |      |  #   |      |  #   |  #
-          w            |      |  #   |      |  #   |  #
-          ww           |      |  #   |      |  #   |  #
-          ddddd        |      |  #   |      |  #   |  #
-    """
-    trip = sequences.insert_keys(*iterable)
-    sequences.print_state_table(*trip)
-    return trip
-
-
-def pr(*a):
-    print(' '.join(a))
 
 
 def bool_pr(key, items, true='+'):
     # return ['', true][key in items]
     return str_bool(key in items, true)
 
+
 def str_bool(val, true='+'):
     return ['', true][val]
 
 
-def show():
-    pp(vars(sq))
+
+def print_table(lines, ml):
+    for l in lines:
+        if l is None:
+            print('')
+            continue
+
+        pr(f"  {l[0]:<{ml}} {l[1]:^4} | {l[2]:^4} | {l[3]:^4} | {l[4]:^4} | {l[5]:^4} | {l[6]:^4}")
+
+
+def pr(*a):
+    print(' '.join(a))
 
 
 class Sequences(object):
@@ -475,17 +272,3 @@ class Sequences(object):
         entity = self.clone()
         self.add_to(entity, other)
         return entity
-
-
-
-def print_table(lines, ml):
-    for l in lines:
-        if l is None:
-            print('')
-            continue
-
-        pr(f"  {l[0]:<{ml}} {l[1]:^4} | {l[2]:^4} | {l[3]:^4} | {l[4]:^4} | {l[5]:^4} | {l[6]:^4}")
-
-
-if __name__ == '__main__':
-    r = main()

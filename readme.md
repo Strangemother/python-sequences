@@ -2,6 +2,54 @@
 
 `Sequences` is a Python library designed to match sequences of stream data (for example  characters) within a larger set. It's particularly useful for detecting patterns, overlaps, and repeat letters in sequences, making it versatile for applications like game 'cheat' input detection, sequence testing, and more.
 
+This library aims to simplify the _silently complex_ task of finding sequences in streams, such as typed characters or object event detection, without storing cached assets.
+
+
+---
+
+
+Consider the scenario of _finding text in a string_. In classical form this isn't difficult
+
+```py
+>>> "text" in "larger text string ..."
+True
+```
+
+However the task becomes more complex when attempting the same through a conurrent stream of data (such as keyboard events or a bytes stream)
+
+---
+
++ discover a string within a incoming stream
++ GTA Style cheat background typing
++ sequence detection for linear iteration
+
+## Example
+
+
+```py
+import src.sequences as sequences
+
+def sink(v):
+    # Any value given is acceptable.
+    return True
+
+
+def vowel(v):
+    return v in 'aieou'
+
+WORDS = (
+    ('w', 'i', 'n', 'd', 'o', 'w',),
+    'windy',
+    ('q', sink, 'd'),
+    ('c', vowel, 't',),
+    )
+
+
+sq = sequences.Sequences(WORDS)
+trip = sq.insert_keys(*'window')
+
+```
+
 
 For example, consider you have a very long string containing your sequence `fragil` - such as "supercalifragilisticexpialidocious". or other button bashed stream of bits.
 
@@ -51,7 +99,6 @@ Although cheap The sequences input machine is versatile:
 
 + Game 'cheat' input
 + Sequence testing
-
 
 Input sequences are checked (after applied to the sequence machine) - processing internal steps until success. If a key fails during startup - the associated units react though events from the sequence machine. Essentially graph-based step-testing.
 

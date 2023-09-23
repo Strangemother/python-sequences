@@ -37,7 +37,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
         for w in words:
             self.input_sequence(w)
 
-    def input_sequence(self, seq):
+    def input_sequence(self, seq, table_id=None):
         """
         Add a sequence for matching
         """
@@ -47,7 +47,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
             # of future siblings
             self.graph[item].add(next_item)
 
-        table_id = self.generate_id(seq)
+        table_id = table_id or self.generate_id(seq)
         # positional keep sequence
         self.mapped[table_id] = seq
         # First var hot-start

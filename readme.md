@@ -1,6 +1,7 @@
 # Sequences
 
-match a sequence of chars within a larger set, using a table of integers. Each 'word' has a position index to yield matches
+`Sequences` is a Python library designed to match sequences of stream data (for example  characters) within a larger set. It's particularly useful for detecting patterns, overlaps, and repeat letters in sequences, making it versatile for applications like game 'cheat' input detection, sequence testing, and more.
+
 
 For example, consider you have a very long string containing your sequence `fragil` - such as "supercalifragilisticexpialidocious". or other button bashed stream of bits.
 

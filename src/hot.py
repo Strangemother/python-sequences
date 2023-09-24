@@ -70,7 +70,6 @@ class HotMixin(object):
                 # Don't reset to zero because this is already open.
                 # and the key matches the current sequece (an open step.)
                 value = sequence[pos]
-                print('Testing against', value)
                 return value == char
             except IndexError:
                 # The key does not exist at this position,

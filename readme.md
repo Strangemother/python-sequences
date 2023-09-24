@@ -1,8 +1,9 @@
 # Sequences
 
+> `Sequences` aims to simplify the _silently complex_ task of finding sequences in streams, such as typed characters or object event detection, without storing cached assets.
+
 Utilizing graph-based step-testing `Sequences` is a Python library developed to identify and match sequences within data streams. It specializes in detecting patterns, overlaps, and recurring elements in various types of data, such as character strings or event sequences. The library is designed to handle real-time sequence detection without the need for stored assets, making it suitable for applications like game 'cheat' input detection and sequence testing.
 
-This library aims to simplify the _silently complex_ task of finding sequences in streams, such as typed characters or object event detection, without storing cached assets.
 
 ## Example
 
@@ -78,26 +79,12 @@ print("Matches", matches)  # Output: Matches ('Sequence B',)
 print("Drops", drops)  # Output: Drops ()
 ```
 
-### Matches
-
-In the context of the Sequences class, a "match" refers to a successful identification of a sequence within the provided iterable. When you insert a key (or character) into the sequence, the library checks if this key aligns with any of the predefined sequences. If it does, and the sequence is completed, it's considered a "match". For instance, if you've defined the sequence "win" and you sequentially insert the keys "w", "i", and "n", you'll get a match for the sequence "win".
-
-### Misses (Drops)
-
-The term "drops" in the code seems to be synonymous with what you referred to as "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
-
-For example, if you've defined the sequence "win" and you insert the keys "w" and "a", the sequence is dropped or missed because "a" doesn't follow "w" in the predefined sequence.
-
-### Hots (Hot Starts)
-
-The concept of "hots" or "hot starts" is a performance optimization in the Sequences class. Instead of checking every possible sequence every time a key is inserted, the library maintains a "hot start" list for sequences that are currently active or have a high likelihood of matching. This list contains the starting characters of all predefined sequences. When a key is inserted that matches one of these starting characters, the sequence is considered "hot" and is actively checked for matches as subsequent keys are inserted.
-
-For instance, if you've defined sequences "win" and "wind", and you insert the key "w", both sequences become "hot" and are actively checked for matches as you continue to insert keys.
-
 
 ## Functional Positions in Sequences
 
-> Apply functions as keys within a sequence. If the _`sink`_ function return `True`, the sequence will continue matching, If `False` the sequence is dropped.
+> Apply functions as keys within a sequence. If the _sink_ function return `True`, the sequence will continue matching, If `False` the sequence is dropped.
+
+With `Sequences` you can define a single sequence with functional positions. A functional position in a sequence is a position where a function is expected rather than a specific value. This function will be called with the actual value at that position, and the sequence will continue if the function returns `True`.
 
 ```py
 from src.sequences import Sequences
@@ -115,8 +102,7 @@ print("Matches", matches)  # Output: Matches ('a?c',)
 ```
 
 
-With `Sequences` you can define a single sequence with functional positions. A functional position in a sequence is a position where a function is expected rather than a specific value. This function will be called with the actual value at that position, and the sequence will continue if the function returns `True`.
-
+For a more grounded example, here we detect if the second character is a vowel:
 
 ```py
 from src.sequences import Sequences
@@ -152,8 +138,23 @@ In this example we simulate three different inputs: "pat", "put", and "pet". All
 
 ---
 
-## More Example
+### Matches
 
+In the context of the Sequences class, a "match" refers to a successful identification of a sequence within the provided iterable. When you insert a key (or character) into the sequence, the library checks if this key aligns with any of the predefined sequences. If it does, and the sequence is completed, it's considered a "match". For instance, if you've defined the sequence "win" and you sequentially insert the keys "w", "i", and "n", you'll get a match for the sequence "win".
+
+### Misses (Drops)
+
+The term "drops" in the code seems to be synonymous with what you referred to as "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
+
+For example, if you've defined the sequence "win" and you insert the keys "w" and "a", the sequence is dropped or missed because "a" doesn't follow "w" in the predefined sequence.
+
+### Hots (Hot Starts)
+
+The concept of "hots" or "hot starts" is a performance optimization in the Sequences class. Instead of checking every possible sequence every time a key is inserted, the library maintains a "hot start" list for sequences that are currently active or have a high likelihood of matching. This list contains the starting characters of all predefined sequences. When a key is inserted that matches one of these starting characters, the sequence is considered "hot" and is actively checked for matches as subsequent keys are inserted.
+
+For instance, if you've defined sequences "win" and "wind", and you insert the key "w", both sequences become "hot" and are actively checked for matches as you continue to insert keys.
+
+## More Example
 
 ```py
 import src.sequences as sequences
@@ -208,42 +209,4 @@ For example we have a list of words and input `window`
     ww       1   |  w   |  #   |  #   |      |
     ddddd        |      |      |      |      |
 
-The library can detect overlaps and repeat letters. Therefore when _ending_ a sequence, you can _start_ another.
-
-For example the word `window` can also be a potential start of another `w...` sequence - such as the single char `w`.
-
-Therefore we have `window`, and has a range of things _started_  and _matched_
-
-      (
-        ('win', 'ww', 'wind', 'w', 'windy'), #started
-        ('window', 'w'), # match
-        ()
-      )
-
-Upon each step of the input sequence (processing bits) we match the table.
-
----
-
-Although cheap The sequences input machine is versatile:
-
-+ Game 'cheat' input
-+ Sequence testing
-
-Input sequences are checked (after applied to the sequence machine) - processing internal steps until success. If a key fails during startup - the associated units react though events from the sequence machine. Essentially graph-based step-testing.
-
-As input sequences may overlap, unique sub-sequences may be captured whilst capturing large sequences: considering the keys for an example game:
-
-    load
-    systemlive
-    systemliveload
-    live
-    loadpass
-    loadfail
-    fail
-    pass
-
-A 5 key even stream may activate all:
-
-    start system live load pass
-
-We load those keys, and as the user inputs, the sequence table will detect when a a match occurs.
+The library can detect overlaps and repeat letters. Therefore when _ending_ a sequence, you can _start_ another. For example the word `window` can also be a potential start of another `w...` sequence - such as the single char `w`.

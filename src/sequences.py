@@ -14,6 +14,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
         if data is None:
             data = {
                 'hots': defaultdict(set),
+                'hot_functions': defaultdict(set),
                 'mapped': {},
                 'table': {},
                 'graph': defaultdict(set),
@@ -51,7 +52,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
         # positional keep sequence
         self.mapped[table_id] = seq
         # First var hot-start
-        self.hots[seq[0]].add(table_id)
+        self.install_hot_key(seq[0], table_id)
 
         self.table[table_id] = UNUSED
 

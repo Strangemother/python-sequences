@@ -12,17 +12,33 @@ class HotMixin(object):
                 "c": {'cape'}
             }
         """
-        hot_keys = self.hots.get(char, None) or ()
 
-        hot_starts = ()
+        hot_keys = self.get_hot_keys(char)
+
+        hot_starts = set()
         # Iterate all table ids found in the hot start table,
         # where the hot-start key is the given char.
         for table_id in hot_keys:
             if self._apply_hot_position(table_id, char):
                 # an event response to the insert function.
-                hot_starts += (table_id, )
+                hot_starts.add(table_id)
 
-        return hot_starts
+        return tuple(hot_starts)
+
+    def get_hot_keys(self, char):
+        r = self.hots.get(char, None) or ()
+        for table_id, functions in self.hot_functions.items():
+            for f in functions:
+                if f(char):
+                    r += (table_id, )
+                    break # first success.
+        return r
+
+    def install_hot_key(self, value, table_id):
+        if callable(value):
+            self.hot_functions[table_id].add(value)
+        self.hots[value].add(table_id)
+
 
     def _apply_hot_position(self, table_id, char):
         # Find the current position of the sequence running index.
@@ -53,7 +69,9 @@ class HotMixin(object):
             try:
                 # Don't reset to zero because this is already open.
                 # and the key matches the current sequece (an open step.)
-                return sequence[pos] == char
+                value = sequence[pos]
+                print('Testing against', value)
+                return value == char
             except IndexError:
                 # The key does not exist at this position,
                 # thus the given (char), must be the first index.

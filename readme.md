@@ -38,49 +38,8 @@ hots, matches, drops = sq.table_insert_keys(['start'])
 print("Complete", matches)  # Output: Complete ('konami',)
 ```
 
-## Understanding Hots, Matches, and Drops
 
-When using the Sequences library, three key concepts are essential: hots (hot starts), matches, and drops. Here’s a brief overview and a demonstration of each:
-
-+ **Hots**: Represent sequences that have started matching and are actively being tracked.
-+ **Matches**: Denote sequences that have been successfully matched.
-+ **Drops**: Indicate sequences that were being tracked but have been dropped due to a mismatch.
-
-```py
-from src.sequences import Sequences
-
-# Define sequences
-SEQUENCE_A = ('a', 'b', 'c')
-SEQUENCE_B = ('x', 'y', 'z')
-
-# Initialize the Sequences object
-sq = Sequences()
-
-# Input sequences into the Sequences object
-sq.input_sequence(SEQUENCE_A, 'Sequence A')
-sq.input_sequence(SEQUENCE_B, 'Sequence B')
-
-# Simulate partial input and check the state
-hots, matches, drops = sq.table_insert_keys(['a', 'b'])
-print("Hots", hots)  # Output: Hots ('Sequence A',)
-print("Matches", matches)  # Output: Matches ()
-print("Drops", drops)  # Output: Drops ()
-
-# Simulate a mismatch
-hots, matches, drops = sq.table_insert_keys(['x'])
-print("Hots", hots)  # Output: Hots ('Sequence B',)
-print("Matches", matches)  # Output: Matches ()
-print("Drops", drops)  # Output: Drops ('Sequence A',)
-
-# Complete the matching for Sequence B
-hots, matches, drops = sq.table_insert_keys(['y', 'z'])
-print("Hots", hots)  # Output: Hots ()
-print("Matches", matches)  # Output: Matches ('Sequence B',)
-print("Drops", drops)  # Output: Drops ()
-```
-
-
-## Functional Positions in Sequences
+## Functional Positions
 
 > Apply functions as keys within a sequence. If the _sink_ function return `True`, the sequence will continue matching, If `False` the sequence is dropped.
 
@@ -135,6 +94,48 @@ for input_values in inputs:
 
 In this example we simulate three different inputs: "pat", "put", and "pet". All three inputs match the sequence as they all have a vowel in the middle position.
 
+
+
+## Understanding Hots, Matches, and Drops
+
+When using the Sequences library, three key concepts are essential: hots (hot starts), matches, and drops. Here’s a brief overview and a demonstration of each:
+
++ **Hots**: Represent sequences that have started matching and are actively being tracked.
++ **Matches**: Denote sequences that have been successfully matched.
++ **Drops**: Indicate sequences that were being tracked but have been dropped due to a mismatch.
+
+```py
+from src.sequences import Sequences
+
+# Define sequences
+SEQUENCE_A = ('a', 'b', 'c')
+SEQUENCE_B = ('x', 'y', 'z')
+
+# Initialize the Sequences object
+sq = Sequences()
+
+# Input sequences into the Sequences object
+sq.input_sequence(SEQUENCE_A, 'Sequence A')
+sq.input_sequence(SEQUENCE_B, 'Sequence B')
+
+# Simulate partial input and check the state
+hots, matches, drops = sq.table_insert_keys(['a', 'b'])
+print("Hots", hots)  # Output: Hots ('Sequence A',)
+print("Matches", matches)  # Output: Matches ()
+print("Drops", drops)  # Output: Drops ()
+
+# Simulate a mismatch
+hots, matches, drops = sq.table_insert_keys(['x'])
+print("Hots", hots)  # Output: Hots ('Sequence B',)
+print("Matches", matches)  # Output: Matches ()
+print("Drops", drops)  # Output: Drops ('Sequence A',)
+
+# Complete the matching for Sequence B
+hots, matches, drops = sq.table_insert_keys(['y', 'z'])
+print("Hots", hots)  # Output: Hots ()
+print("Matches", matches)  # Output: Matches ('Sequence B',)
+print("Drops", drops)  # Output: Drops ()
+```
 
 ---
 

@@ -2,12 +2,33 @@
 
 > `Sequences` aims to simplify the _silently complex_ task of finding sequences in streams, such as typed characters or object event detection, without storing cached assets.
 
-Utilizing graph-based step-testing `Sequences` is a Python library developed to identify and match sequences within data streams. It specializes in detecting patterns, overlaps, and recurring elements in various types of data, such as character strings or event sequences. The library is designed to handle real-time sequence detection without the need for stored assets, making it suitable for applications like game 'cheat' input detection and sequence testing.
+Sequences is a Python library designed to identify and match sequences within data streams, specializing in detecting patterns, overlaps, and recurring elements in various types of data, such as character strings or event sequences. The library operates in real-time, making it a versatile tool for applications like game 'cheat' input detection, sequence testing, and more.
 
+## Usage
+
+To use the `Sequences` library, start by importing the library and initializing the Sequences object. Define your sequences and input them into the object. Here's a basic example:
+
+```py
+from src.sequences import Sequences
+
+# Define a sequence
+sequence = ('a', 'b', 'c')
+sequence_key = "abc"
+
+# Initialize the Sequences object and input the sequence
+sq = Sequences()
+sq.input_sequence(sequence, 'optional-key')
+```
+
+Then execute detections:
+
+```py
+hots, matches, drops = sq.table_insert_keys(['a','b', 'c'])
+```
 
 ## Example
 
-In this example, we define the Konami Code sequence and input it into the `Sequences` object. We then simulate button presses and check for sequence matches. The Konami Code is successfully matched when the entire sequence of buttons is pressed.
+As an example, we define the Konami Code sequence and input it into the `Sequences` object. We then simulate button presses and check for sequence matches. The Konami Code is successfully matched when the entire sequence of buttons is pressed.
 
 
 ```py
@@ -155,6 +176,92 @@ The concept of "hots" or "hot starts" is a performance optimization in the Seque
 
 For instance, if you've defined sequences "win" and "wind", and you insert the key "w", both sequences become "hot" and are actively checked for matches as you continue to insert keys.
 
+
+## Key ID Function
+
+A `key` for the applied sequence may be any value. If `None` The _key_ is a string of the given value
+
+```py
+import src.sequences as sequences
+
+
+WORDS = (
+    ('w', 'i', 'n', 'd', 'o', 'w',),
+    'windy',
+    )
+
+
+sq = sequences.Sequences(WORDS)
+trip = sq.insert_keys(*'window')
+```
+
+We see the _window_ tuple, literally prints as a stringyfied tuple:
+
+```py
+(
+    ("('w', 'i', 'n', 'd', 'o', 'w')", 'windy'),  # Activated
+    ("('w', 'i', 'n', 'd', 'o', 'w')",),          # Matches
+    ('windy',)                                    # Drops
+)
+```
+
+Inserting `"window"` with a key, changes the output:
+
+```py
+import src.sequences as sequences
+
+
+WORDS = (
+    'windy',
+    )
+sq = sequences.Sequences(WORDS)
+sq.input_sequence(('w', 'i', 'n', 'd', 'o', 'w',), 'window')
+
+trip = sq.insert_keys(*'window')
+(
+    ('window', 'windy'),   # Activated
+    ('window'),            # Matches
+    ('windy')              # Drops
+)
+```
+
+Or we can define it on the initial input as a dictionary:
+
+```py
+import src.sequences as sequences
+
+
+WORDS = {
+    'window': ('w', 'i', 'n', 'd', 'o', 'w',),
+    'windy' :'windy',
+}
+
+
+sq = sequences.Sequences(WORDS)
+trip = sq.insert_keys(*'window')
+```
+
+Alternatively we can use the `Sequence` class
+
+
+```py
+import src.sequences as sequences
+
+
+WORDS = (
+    Sequence('window', 'w', 'i', 'n', 'd', 'o', 'w'),
+    Sequence(name='window', path=('w', 'i', 'n', 'd', 'o', 'w')),
+    Sequence('window', Path('w', 'i', 'n', 'd', 'o', 'w')),
+    Sequence('windy'),
+    Sequence(path='windy'),
+)
+
+
+sq = sequences.Sequences(WORDS)
+trip = sq.insert_keys(*'window')
+```
+
+
 ## More Example
 
 ```py
@@ -167,6 +274,7 @@ def sink(v):
 
 def vowel(v):
     return v in 'aieou'
+
 
 WORDS = (
     ('w', 'i', 'n', 'd', 'o', 'w',),
@@ -181,10 +289,59 @@ trip = sq.insert_keys(*'window')
 
 ```
 
+---
 
-For example, consider you have a very long string containing your sequence `fragil` - such as "supercalifragilisticexpialidocious". or other button bashed stream of bits.
+A very long string:
 
-Here we build a table of positions for the possible words.
+    supercalifragilisticexpialidocious
+
+containing your sequence `fragil`, and `a?i`, where `?` is any character:
+
+```py
+from src.sequences import Sequences
+from collections import Counter
+
+# Define a sink function that always returns True
+def sink(v):
+    return True
+
+# Initialize the Sequences object
+sq = Sequences()
+
+# Define and input the sequences
+sq.input_sequence('fragil')
+sq.input_sequence(('a', sink, 'i'), 'a?i')
+```
+
+Now, we can simulate the input of the characters from the incoming string and use `collections.Counter` to count the instances of each detected sequence:
+
+```py
+# Initialize a Counter object to count the instances
+sequence_counter = Counter()
+
+# Simulate the input of characters and count the sequences
+incoming_string = "supercalifragilisticexpialidocious"
+
+for char in incoming_string:
+    _, matches, _ = sq.insert_key(char)
+    sequence_counter.update(matches)
+
+# Print the count of each detected sequence
+print(sequence_counter)
+Counter({'a?i': 3, 'fragil': 1})
+
+```
+
+You could cheat and run all keys without the loop, gathering the results as they occur:
+
+```py
+did_hot, did_match, did_drop = sq.insert_keys(*incoming_string)
+# ('fragil', 'a?i'), ('fragil', 'a?i'), ('fragil', 'a?i')
+```
+
+We see when running the entire incoming string, it maintains all changes for a key ocross the three states. A successful key will hit all three positions (hot, match, drop).
+
+---
 
 For example we have a list of words and input `window`
 
@@ -211,3 +368,8 @@ For example we have a list of words and input `window`
     ddddd        |      |      |      |      |
 
 The library can detect overlaps and repeat letters. Therefore when _ending_ a sequence, you can _start_ another. For example the word `window` can also be a potential start of another `w...` sequence - such as the single char `w`.
+
+
+
+reducing complexity from `O(n)` to `o(k)` through hot reduction.
+

@@ -35,8 +35,13 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
         self.__dict__.update(*data)
 
     def stack(self, words):
+        f = lambda x: (x,)
+
+        if type(words) is dict:
+            f = lambda x: (words[x], x)
+
         for w in words:
-            self.input_sequence(w)
+            self.input_sequence(*f(w))
 
     def input_sequence(self, seq, table_id=None):
         """

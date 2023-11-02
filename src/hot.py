@@ -26,6 +26,8 @@ class HotMixin(object):
         return tuple(hot_starts)
 
     def get_hot_keys(self, char):
+        """Return all table ids matching the given `char` id.
+        """
         r = self.hots.get(char, None) or ()
         for table_id, functions in self.hot_functions.items():
             for f in functions:
@@ -35,6 +37,13 @@ class HotMixin(object):
         return r
 
     def install_hot_key(self, value, table_id):
+        """Apply the given `value` as a hot key for the given `table_id`.
+
+        This applies the value as the _start_ of the sequeunce, used to check
+        if a sequence should start without iterating all available sequences.
+
+        returns None
+        """
         if callable(value):
             self.hot_functions[table_id].add(value)
         self.hots[value].add(table_id)

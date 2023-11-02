@@ -41,7 +41,7 @@ WORDS2 = (
 
 def main():
     run_test(WORDS)
-    sq = Sequences(WORDS2)
+    sq = Sequences(WORDS, id_func=id)
     # ask_loop(sq)
     return sq
 

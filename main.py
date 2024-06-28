@@ -4,7 +4,7 @@ from src.frames import mass_frame, single_frames
 from tests import run_test
 
 # Detect these words within an input stream.
-WORDS = ('apples',
+WORDSA = ('apples',
     'window',
     'ape',
     'apex',
@@ -40,10 +40,31 @@ WORDS2 = (
     )
 
 def main():
-    run_test(WORDS)
-    sq = Sequences(WORDS, id_func=id)
+    run_test(WORDSA)
+    sq = Sequences(WORDSA, id_func=id)
     # ask_loop(sq)
     return sq
+
+
+from src.sequence import Sequence, Path
+
+WORDS = (
+    Sequence('cake', Path('w', 'i', 'n')),
+)
+
+sq = Sequences(WORDS)
+
+
+from src.sequence import Sequence, Path
+
+WORDS = (
+    Sequence('cake', Path('w', 'i', 'n')),
+    Path('w', 'i', 'n'),
+)
+
+sq = Sequences(WORDS)
+
+sq.insert_key('w')
 
 
 def ask_loop(sequences):

@@ -20,23 +20,34 @@ class InsertMixin(object):
 
         return as_tuples(new_hots, matches, drops)
 
+    # def tick_sleeping(self):
+    #     """Increment all sleeping positions by 1 until the value reaches -1"""
+    #     table = self.table
+    #     for table_id, pos in table.items():
+    #         if pos >= -1: continue
+    #         print('Tick', table_id, pos +1)
+    #         table[table_id] = pos + 1
+
     def insert_key(self, char, reset_on_fail=True):
         matches = ()
         resets = ()
         table = self.table
 
         _hots = self.set_next_hots(char)
+        # self.tick_sleeping()
 
         for table_id, pos in table.items():
             ## Testing for -1 assumes the hot starts have stepped any active
             # sequence to 0.
-            if pos == -1: continue
+            if pos <= -1: continue
 
             success, res = self._test_insert_key(char, table_id, pos, table)
 
             if not success:
                 if reset_on_fail:
-                    table[table_id] = -1
+                    # seq = self.get_sequence(table_id)
+                    # pos = table[table_id]
+                    table[table_id] = -1 # -(len(seq[pos:])-1)
                     resets += res
                 continue
 
@@ -61,13 +72,15 @@ class InsertMixin(object):
         return True, self._position_match(table, table_id, index_match, seq, char)
 
     def _test_index_match(self, seq, pos, char, table_id):
-
+        """assert if the seq[pos] == char. Return the integer of the match as
+        0 or 1
+        """
         try:
             table_position = seq[pos]
         except IndexError:
             # The position is past the edge of the given sequence
             # This occurs when a key completes (has matched)
-            print('IndexError for', pos, 'on', table_id)
+            # print('IndexError for', pos, 'on', table_id)
             index_match = seq[0] == char
             return int(index_match)
 

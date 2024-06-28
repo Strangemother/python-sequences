@@ -1,6 +1,12 @@
 
 
 class HotMixin(object):
+    # # keys are not pulled from the hot key list if they are
+    # # in sleeping
+    # # (The position int is < -1
+    # # denoting a drop of distance
+    # # from the tip (the match))
+    # respect_sleeping = True
 
     def set_next_hots(self, char):
         """Given a char, step the val if it exists in the 'hot start'
@@ -19,11 +25,18 @@ class HotMixin(object):
         # Iterate all table ids found in the hot start table,
         # where the hot-start key is the given char.
         for table_id in hot_keys:
+            # if self.is_sleeping(table_id):
+            #     pos = self.get_position(table_id)
+            #     print('Skip sleeping', table_id, pos, 'for', char)
             if self._apply_hot_position(table_id, char):
                 # an event response to the insert function.
                 hot_starts.add(table_id)
 
         return tuple(hot_starts)
+
+    # def is_sleeping(self, table_id):
+    #     pos = self.get_position(table_id)
+    #     return pos < -1 # lower than -1 is sleeping distance
 
     def get_hot_keys(self, char):
         """Return all table ids matching the given `char` id.
@@ -47,7 +60,6 @@ class HotMixin(object):
         if callable(value):
             self.hot_functions[table_id].add(value)
         self.hots[value].add(table_id)
-
 
     def _apply_hot_position(self, table_id, char):
         # Find the current position of the sequence running index.

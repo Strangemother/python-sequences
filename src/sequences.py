@@ -17,7 +17,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
                 'hot_functions': defaultdict(set),
                 'mapped': {},
                 'table': {},
-                'graph': defaultdict(set),
+                # 'graph': defaultdict(set),
                 'id_func': id_func or str,
             }
 
@@ -28,7 +28,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
         self.add = self.insert_keys
 
     def get_data(self):
-        keys = ['hots', 'mapped', 'table', 'graph', 'id_func',]
+        keys = ['hots', 'mapped', 'table', 'id_func',] #  'graph',
         return {x:getattr(self,x) for x in keys}
 
     def set_data(self, *data):
@@ -51,7 +51,7 @@ class Sequences(HotMixin, InsertMixin, PrintTableMixin):
             next_item = seq[index]
             # Stack the _next_ of the walking tree into the set
             # of future siblings
-            self.graph[item].add(next_item)
+            # self.graph[item].add(next_item)
 
         table_id = table_id or self.generate_id(seq)
         # positional keep sequence

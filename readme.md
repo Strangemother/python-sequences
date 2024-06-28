@@ -1,8 +1,39 @@
-# Sequences
+# Parallel Realtime Stream Sequence Detection with a Finite Automoton
 
 > `Sequences` aims to simplify the _silently complex_ task of finding sequences in streams, such as typed characters or object event detection, without storing cached assets.
 
 Sequences is a Python library designed to identify and match sequences within data streams, specializing in detecting patterns, overlaps, and recurring elements in various types of data, such as character strings or event sequences. The library operates in real-time, making it a versatile tool for applications like game 'cheat' input detection, sequence testing, and more.
+
+
++ Feedforward sequencing
++ Works with stream data
++ Detect overlapping and repeat sequences
++ functional sinking for inline dynamic _paths_
++ Minimal overhead (1 integer per path)
++ Unlimited path length
+
+## How does it work
+
+1. Add sequences to detect (such as string)
+2. Input event streams (such as keyboard key presses)
+3. Capture events for sequence matches
+
+## Efficiencies
+
+1. O(k) sequence initiation using _hot start_
+2. One signed integer per path
+3. O(k) position testing - one test per _bit_ per path
+
+Notably O(n) for iterating table live sequences (Any sequence with an index greater than `-1`)
+
+---
+
+Sidenote:
+
+I'm trying to cite the algorithm this mimics, however currently I haven't found a match.
+If you can help discover the true name of this searching algorithm, please get in touch.
+
+---
 
 ## Usage
 
@@ -25,6 +56,17 @@ Then execute detections:
 ```py
 hots, matches, drops = sq.table_insert_keys(['a','b', 'c'])
 ```
+
+---
+
+Possible Usages:
+
++ Game key input strings (combos etc..)
++ Parallel bit sequencing for streams
+    + Capturing tiny strings in big files
+    + readling pipe data during transit for sequences
++ Ordered structure testing, such as "commands" from a socket
+    + such as oauth process matching
 
 ## Example
 
@@ -116,68 +158,7 @@ for input_values in inputs:
 In this example we simulate three different inputs: "pat", "put", and "pet". All three inputs match the sequence as they all have a vowel in the middle position.
 
 
-
-## Understanding Hots, Matches, and Drops
-
-When using the Sequences library, three key concepts are essential: hots (hot starts), matches, and drops. Here’s a brief overview and a demonstration of each:
-
-+ **Hots**: Represent sequences that have started matching and are actively being tracked.
-+ **Matches**: Denote sequences that have been successfully matched.
-+ **Drops**: Indicate sequences that were being tracked but have been dropped due to a mismatch.
-
-```py
-from src.sequences import Sequences
-
-# Define sequences
-SEQUENCE_A = ('a', 'b', 'c')
-SEQUENCE_B = ('x', 'y', 'z')
-
-# Initialize the Sequences object
-sq = Sequences()
-
-# Input sequences into the Sequences object
-sq.input_sequence(SEQUENCE_A, 'Sequence A')
-sq.input_sequence(SEQUENCE_B, 'Sequence B')
-
-# Simulate partial input and check the state
-hots, matches, drops = sq.table_insert_keys(['a', 'b'])
-print("Hots", hots)  # Output: Hots ('Sequence A',)
-print("Matches", matches)  # Output: Matches ()
-print("Drops", drops)  # Output: Drops ()
-
-# Simulate a mismatch
-hots, matches, drops = sq.table_insert_keys(['x'])
-print("Hots", hots)  # Output: Hots ('Sequence B',)
-print("Matches", matches)  # Output: Matches ()
-print("Drops", drops)  # Output: Drops ('Sequence A',)
-
-# Complete the matching for Sequence B
-hots, matches, drops = sq.table_insert_keys(['y', 'z'])
-print("Hots", hots)  # Output: Hots ()
-print("Matches", matches)  # Output: Matches ('Sequence B',)
-print("Drops", drops)  # Output: Drops ()
-```
-
----
-
-### Matches
-
-In the context of the Sequences class, a "match" refers to a successful identification of a sequence within the provided iterable. When you insert a key (or character) into the sequence, the library checks if this key aligns with any of the predefined sequences. If it does, and the sequence is completed, it's considered a "match". For instance, if you've defined the sequence "win" and you sequentially insert the keys "w", "i", and "n", you'll get a match for the sequence "win".
-
-### Misses (Drops)
-
-The term "drops" in the code seems to be synonymous with what you referred to as "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
-
-For example, if you've defined the sequence "win" and you insert the keys "w" and "a", the sequence is dropped or missed because "a" doesn't follow "w" in the predefined sequence.
-
-### Hots (Hot Starts)
-
-The concept of "hots" or "hot starts" is a performance optimization in the Sequences class. Instead of checking every possible sequence every time a key is inserted, the library maintains a "hot start" list for sequences that are currently active or have a high likelihood of matching. This list contains the starting characters of all predefined sequences. When a key is inserted that matches one of these starting characters, the sequence is considered "hot" and is actively checked for matches as subsequent keys are inserted.
-
-For instance, if you've defined sequences "win" and "wind", and you insert the key "w", both sequences become "hot" and are actively checked for matches as you continue to insert keys.
-
-
-## Key ID Function
+## Key ID
 
 A `key` for the applied sequence may be any value. If `None` The _key_ is a string of the given value
 
@@ -370,6 +351,122 @@ For example we have a list of words and input `window`
 The library can detect overlaps and repeat letters. Therefore when _ending_ a sequence, you can _start_ another. For example the word `window` can also be a potential start of another `w...` sequence - such as the single char `w`.
 
 
-
 reducing complexity from `O(n)` to `o(k)` through hot reduction.
 
+
+# Algorithm Understanding
+
+
+The algorithm was initially developed for securing WebSocket channels, allowing users to switch channels securely on the server side while tracking their movements. Each transaction marked a position along a path, defining what the user was allowed to subscribe to. This robust solution evolved to detect sequences of inputs, such as keys, where each key could be a character, object, or event. This approach is particularly useful for handling long input sequences without storing a historical cache, thereby maintaining efficiency.
+
+## Functionality
+
+1. **Hot Key Detection**
+   - When an input key sequence is applied, the algorithm first tests for hot keys.
+   - If a key is hot, it activates or tracks that path or sequence.
+
+2. **Sequence Insertion**
+   - The algorithm checks if the key is part of the hot start.
+   - If the key is part of the hot start, the sequence key map reference is loaded and marked as active.
+
+3. **Index Initialization**
+   - Every position in the sequence table is initialized to minus one.
+   - The HOTSTART function sets the key to zero if it should start the sequence, enabling the path.
+
+4. **Table Testing**
+   - The algorithm maintains a table of all sequences with an integer indicating the current position.
+   - If a sequence is active, the current input is tested against the expected value at the sequence's current position.
+
+5. **Testing and Assertion**
+   - If the input matches the expected value, the position index is incremented.
+   - If the input does not match, the index resets to minus one.
+
+6. **Iterative Processing**
+   - The process repeats for each input.
+   - If a sequence completes successfully, it registers a hit.
+   - Otherwise, the sequence either continues or drops.
+
+## Path Handling
+
+- **Non-Interference**: Paths cannot interfere with themselves. Multiple characters in a sequence do not conflict, ensuring smooth processing.
+- **Parallel Paths**: Different sequences with similar initial inputs can coexist without interference. For example, "windy" and "wind" can be processed in parallel without conflict.
+
+
+## Understanding Hots, Matches, and Drops
+
+When using the Sequences library, three key concepts are essential: hots (hot starts), matches, and drops. Here’s a brief overview and a demonstration of each:
+
++ **Hots**: Represent sequences that have started matching and are actively being tracked.
++ **Matches**: Denote sequences that have been successfully matched.
++ **Drops**: Indicate sequences that were being tracked but have been dropped due to a mismatch.
+
+```py
+from src.sequences import Sequences
+
+# Define sequences
+SEQUENCE_A = ('a', 'b', 'c')
+SEQUENCE_B = ('x', 'y', 'z')
+
+# Initialize the Sequences object
+sq = Sequences()
+
+# Input sequences into the Sequences object
+sq.input_sequence(SEQUENCE_A, 'Sequence A')
+sq.input_sequence(SEQUENCE_B, 'Sequence B')
+
+# Simulate partial input and check the state
+hots, matches, drops = sq.table_insert_keys(['a', 'b'])
+print("Hots", hots)  # Output: Hots ('Sequence A',)
+print("Matches", matches)  # Output: Matches ()
+print("Drops", drops)  # Output: Drops ()
+
+# Simulate a mismatch
+hots, matches, drops = sq.table_insert_keys(['x'])
+print("Hots", hots)  # Output: Hots ('Sequence B',)
+print("Matches", matches)  # Output: Matches ()
+print("Drops", drops)  # Output: Drops ('Sequence A',)
+
+# Complete the matching for Sequence B
+hots, matches, drops = sq.table_insert_keys(['y', 'z'])
+print("Hots", hots)  # Output: Hots ()
+print("Matches", matches)  # Output: Matches ('Sequence B',)
+print("Drops", drops)  # Output: Drops ()
+```
+
+---
+
+### Matches
+
+In the context of the Sequences class, a "match" refers to a successful identification of a sequence within the provided iterable. When you insert a key (or character) into the sequence, the library checks if this key aligns with any of the predefined sequences. If it does, and the sequence is completed, it's considered a "match". For instance, if you've defined the sequence "win" and you sequentially insert the keys "w", "i", and "n", you'll get a match for the sequence "win".
+
+### Misses (Drops)
+
+The term "drops" in the code seems to be synonymous with what you referred to as "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
+
+For example, if you've defined the sequence "win" and you insert the keys "w" and "a", the sequence is dropped or missed because "a" doesn't follow "w" in the predefined sequence.
+
+### Hots (Hot Starts)
+
+The concept of "hots" or "hot starts" is a performance optimization in the Sequences class. Instead of checking every possible sequence every time a key is inserted, the library maintains a "hot start" list for sequences that are currently active or have a high likelihood of matching. This list contains the starting characters of all predefined sequences. When a key is inserted that matches one of these starting characters, the sequence is considered "hot" and is actively checked for matches as subsequent keys are inserted.
+
+For instance, if you've defined sequences "win" and "wind", and you insert the key "w", both sequences become "hot" and are actively checked for matches as you continue to insert keys.
+
+
+---
+
+Similar Algorithms:
+
++ Commentz-Walter algorithm:
+    https://en.wikipedia.org/wiki/Commentz-Walter_algorithm
++ Boyer Moore string-search algorithm:
+    https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm
++ Knuth-Morris-Pratt (KMP) Algorithm:
+    Efficiently searches for a word within a main text string by avoiding redundant checking.
++ Rabin-Karp Algorithm:
+    Uses hashing to find any one of a set of pattern strings in a text.
++ Aho-Corasick Algorithm:
+    Constructs a finite state machine from a set of strings to find all occurrences of these strings in a text.
++ Finite State Machines (FSM):
+    Abstract machines to model sequences or patterns for recognition tasks.
++ Dynamic Programming:
+    Techniques like the Longest Common Subsequence (LCS) can be adapted for certain types of sequence detection.

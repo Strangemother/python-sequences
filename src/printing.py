@@ -41,13 +41,14 @@ class PrintTableMixin(object):
 
         return self.print_insert_table(None, hots, matches, drops)
 
-    def print_insert_table(self, char, _hots, matches, drops):
+    def print_insert_table(self, char, _hots, matches, drops, header=True):
         opens = ()
         lines = ()
         ml = 4
         spacer = None
-        header = ('WORD', 'POS', 'NEXT', 'STRT', 'OPEN', 'HIT', 'DROP', )
-        lines += ( spacer, header, )
+        if header is True:
+            _header = ('WORD', 'POS', 'NEXT', 'STRT', 'OPEN', 'HIT', 'DROP', )
+            lines += ( spacer, _header, )
         for tk, v in self.table.items():
             stk = str(tk)
             # if v < 0:
@@ -88,6 +89,6 @@ class PrintTableMixin(object):
         res = None
         for k in chars:
             res = self.insert_keys(k) # _hots, matches, drops
-            self.print_insert_table(k, *res)
+            # self.print_insert_table(k, *res)
         return res
 

@@ -1,7 +1,11 @@
 from src.sequences import Sequences
 
 # Define the Konami Code sequence
-KONAMI_CODE = ('up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'b', 'a', 'start')
+KONAMI_CODE = ('up', 'up', 'down', 'down',
+               'left', 'right',
+               'left', 'right',
+               'b', 'a', 'start'
+               )
 CODE_NAME = 'konami'
 
 # Initialize the Sequences object

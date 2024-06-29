@@ -441,7 +441,7 @@ In the context of the Sequences class, a "match" refers to a successful identifi
 
 ### Misses (Drops)
 
-The term "drops" in the code seems to be synonymous with what you referred to as "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
+The term "drops" is synonymous with "misses". A "miss" or "drop" occurs when a key is inserted that doesn't align with the next expected key in any of the active sequences. This means that the current path being traced doesn't match any of the predefined sequences. When this happens, the sequence's position is reset (if reset_on_fail is set to True), effectively dropping or missing the sequence.
 
 For example, if you've defined the sequence "win" and you insert the keys "w" and "a", the sequence is dropped or missed because "a" doesn't follow "w" in the predefined sequence.
 
